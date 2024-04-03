@@ -71,12 +71,6 @@ export const updateContact = async (req, res, next) => {
         const { id } = req.params;
         const { name, email, phone } = req.body;
 
-        if (!name && !email && !phone) {
-            return res.status(400).json({
-                message: "Body must have at least one field"
-            });
-        }
-
         const updateUser = await contactsService.updateContact(id, { name, email, phone });
         
         if (!updateUser) {
