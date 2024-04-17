@@ -1,14 +1,16 @@
 import { Router } from "express";
-import { checkLoginData, checkRegisterData, protect } from "../middlewares/authMiddlewares.js";
+import { protect } from "../middlewares/authMiddlewares.js";
 import { getCurrent, login, logout, register, updateUserSubscription } from "../controllers/authController.js";
+import validateBody from "../helpers/validateBody.js";
+import { loginUserSchema, registerUserSchema } from "../schemas/userSchema.js";
 
 const router = Router();
 
 // checkRegisterData signup
-router.post('/register', checkRegisterData, register);
+router.post('/register', validateBody(registerUserSchema), register);
 
 //  checkLoginData, login
-router.post('/login', checkLoginData, login);
+router.post('/login', validateBody(loginUserSchema), login);
 
 // Loguot request
 router.post('/logout', protect, logout)

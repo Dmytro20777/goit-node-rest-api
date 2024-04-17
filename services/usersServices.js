@@ -1,5 +1,5 @@
 import HttpError from "../helpers/HttpError.js";
-import { User } from "../modals/userModal.js";
+import { User } from "../modals/userModel.js";
 import { signToken } from "./jwtService.js";
 
 async function checkUserExistence(filter) {
@@ -27,7 +27,7 @@ async function registerUser(userData) {
 const loginUser = async ({ email, password }) => {
   const user = await User.findOne({ email }).select('+password');
 
-  if (!user) throw HttpError(401, "Email or password is wrong");
+  if (!user) throw HttpError(400, "Bad Request");
 
   const passwordIsValid = await user.checkUserPassword(password, user.password);
 

@@ -3,6 +3,14 @@ import usersServices from "../services/usersServices.js";
 
 export const register = async (req, res, next) => {
   try {
+    const { email } = req.body;
+
+    const userExists = await usersServices.checkUserExistence({ email });
+    
+    if (userExists) {
+      throw HttpError(409, "User with this email already exists...");
+    };
+
     const { newUser, token } = await usersServices.registerUser(req.body);
 
     res.status(201).json({
@@ -32,31 +40,18 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-
-    const userId = req.user._id
-
-    const user = await usersServices.getUserByIdService(userId);
-
-    if (!user) {
-      throw HttpError(401, 'Unauthorized');
-    } 
-
-    user.token = null;
-    await user.save();
+    req.user.token = null;
+    await req.user.save();
 
     res.status(204).send();
 
   } catch (error) {
     next(error);
   }
-}
+};
 
 export const getCurrent = (req, res, next) => {
   try {
-    if (!req.user) {
-      throw HttpError(401, 'Unauthorized');
-    }
-
     const currentUser = req.user;
 
     res.status(200).json({
