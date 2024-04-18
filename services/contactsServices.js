@@ -1,36 +1,49 @@
-import { Contact } from "../modals/contactModal.js";
+import { Contact } from "../modals/contactModel.js";
 
-const listContacts = () => Contact.find()
+const listContacts = (userId, filters, limit, offset) => {
+  const query = { owner: userId, ...filters };
 
-async function getContactById(contactId) {
-  const contacts = await Contact.findById(contactId);
+  const allcontacts = Contact.find(query).limit(limit).skip(offset);
+
+  return allcontacts;
+};
+
+async function getContactById(contactId, userId) {
+  const query = { owner: userId, _id: contactId };
+
+  const contact = await Contact.findOne(query);
+
+  return contact;
+};
+
+async function removeContact(contactId, userId) {
+  const query = { owner: userId, _id: contactId };
+
+  const contacts = await Contact.findOneAndDelete(query);
+
   return contacts;
-}
+};
 
-async function removeContact(contactId) {
-  const contacts = await Contact.findByIdAndDelete(contactId);
-
-  return contacts;
-}
-
-async function addContact(name, email, phone) {
-  const newContact = await Contact.create({ name, email, phone });
+async function addContact(name, email, phone, userId) {
+  const newContact = await Contact.create({ name, email, phone, owner: userId });
 
   return newContact;
-}
+};
 
-async function updateContact(contactId, updatedData) {
-  const updatedContact = await Contact.findByIdAndUpdate(contactId, updatedData, { new: true });
+async function updateContact(contactId, updatedData, userId) {
+  const query = { owner: userId, _id: contactId };
 
+  const updatedContact = await Contact.findOneAndUpdate(query, updatedData, { new: true });
   return updatedContact;
 }
 
-async function updateStatusContact(contactId, body) {
+async function updateStatusContact(contactId, body, userId) {
   const { favorite } = body;
-    
-  const updatedContact = await Contact.findByIdAndUpdate(contactId, { favorite }, { new: true });
-    
-  return updatedContact;
-}
+  const updatedContact = await Contact.findOneAndUpdate({ _id: contactId, owner: userId }, { favorite }, { new: true });
 
-export default { listContacts, getContactById, removeContact, addContact, updateContact, updateStatusContact };
+  return updatedContact;
+};
+
+export default {
+  listContacts, getContactById, removeContact, addContact, updateContact, updateStatusContact
+};
