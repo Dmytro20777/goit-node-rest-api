@@ -76,4 +76,16 @@ export const updateUserSubscription = async (req, res, next) => {
   } catch (error) {
     next(error);
   };
-}
+};
+
+export const updateAvatarController = async (req, res, next) => {
+  try {
+    const avatarURL = await usersServices.updateAvatarService(req.user, req.file);
+
+    res.status(200).json({
+      avatarURL,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

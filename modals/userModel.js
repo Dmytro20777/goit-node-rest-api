@@ -1,6 +1,7 @@
 import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { signToken } from '../services/jwtService.js';
+import crypto from "crypto";
+import { signToken } from '../services/jwtService.js'
 
 const userSchema = new Schema({
   password: {
@@ -21,10 +22,17 @@ const userSchema = new Schema({
     type: String,
     default: null,
   },
+  avatarURL: String,
 });
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
+
+  if (this.isNew) {
+    const emailHash = crypto.createHash("md5").update(this.email).digest("hex");
+    
+    this.avatarURL = `https://gravatar.com/avatar/${emailHash}.jpg?d=robohash`
+  }
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
