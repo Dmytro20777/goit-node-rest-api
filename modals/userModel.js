@@ -1,6 +1,7 @@
 import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from "crypto";
+import gravatar from "gravatar";
 import { signToken } from '../services/jwtService.js'
 
 const userSchema = new Schema({
@@ -31,7 +32,7 @@ userSchema.pre('save', async function(next) {
   if (this.isNew) {
     const emailHash = crypto.createHash("md5").update(this.email).digest("hex");
     
-    this.avatarURL = `https://gravatar.com/avatar/${emailHash}.jpg?d=robohash`
+    this.avatarURL = gravatar.url(emailHash, { s: '200', d: 'identicon' }, true);
   }
 
   const salt = await bcrypt.genSalt(10);
