@@ -5,8 +5,10 @@ import {
   login,
   logout,
   register,
+  resendVerificationEmail,
   updateAvatarController,
   updateUserSubscription,
+  verifyToken,
 } from "../controllers/authController.js";
 import validateBody from "../helpers/validateBody.js";
 import { loginUserSchema, registerUserSchema } from "../schemas/userSchema.js";
@@ -31,5 +33,11 @@ router.patch('/avatars', protect, uploadAvatar, updateAvatarController)
 
 // Update subscription
 router.patch("/", protect, updateUserSubscription)
+
+// Verify user
+router.get("/verify/:verificationToken", verifyToken)
+
+// Re-verification user
+router.post("/verify", resendVerificationEmail)
 
 export { router }

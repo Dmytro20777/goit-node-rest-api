@@ -1,17 +1,21 @@
 import HttpError from "../helpers/HttpError.js";
+import { generateVerificationToken, sendVerificationEmail } from "../services/emailService.js";
 import usersServices from "../services/usersServices.js";
 
 export const register = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
 
     const userExists = await usersServices.checkUserExistence({ email });
-    
     if (userExists) {
       throw HttpError(409, "User with this email already exists...");
-    };
+    }
 
-    const { newUser, token } = await usersServices.registerUser(req.body);
+    const verificationToken = generateVerificationToken();
+
+    const { newUser, token } = await usersServices.registerUser({ email, password, verificationToken });
+
+    await sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({
       user: newUser,
@@ -19,7 +23,7 @@ export const register = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
-  };
+  }
 };
 
 export const login = async (req, res, next) => {
@@ -89,3 +93,31 @@ export const updateAvatarController = async (req, res, next) => {
     next(error);
   }
 };
+
+export const verifyToken = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const result = await usersServices.verifyEmail(verificationToken);
+
+    if (result.error) {
+      return res.status(result.status).json({ message: result.message });
+    }
+
+    return res.status(200).json({ message: result.message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await usersServices.reVerification(email);
+
+    return res.status(200).json({
+      message: "Verification email sent"
+    })
+  } catch (error) {
+    next(error);
+  }
+}

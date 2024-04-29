@@ -5,6 +5,7 @@ import { v4 } from "uuid";
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../modals/userModel.js";
 import { signToken } from "./jwtService.js";
+import { sendVerificationEmail } from "./emailService.js";
 
 async function checkUserExistence(filter) {
   if (!filter) {
@@ -36,6 +37,10 @@ const loginUser = async ({ email, password }) => {
   const passwordIsValid = await user.checkUserPassword(password, user.password);
 
   if (!passwordIsValid) throw HttpError(401, "Email or password is wrong");
+
+  if (!user.verify) {
+    throw HttpError(403, "Email is not verified")
+  }
 
   user.token = signToken(user._id); 
   await user.save();
@@ -77,8 +82,45 @@ const updateAvatarService = async (user, file) => {
   await user.save();
 
   return avatarURL;
-}; 
+};
+
+const verifyEmail = async (verificationTokenOfUser) => {
+  const user = await User.findOne({ verificationToken: verificationTokenOfUser });
+
+  if (!user) {
+    throw HttpError(404, "User not found");
+  }
+
+  user.verify = true;
+  user.verificationToken = null;
+  await user.save({ validateBeforeSave: false });
+
+  return { error: false, message: 'Verification successful' };
+}
+
+const reVerification = async (emailOfUser) => {
+
+  if (!emailOfUser) {
+    throw HttpError(400, "Missing required field email")
+  };
+
+  const user = await User.findOne({ email: emailOfUser });
+
+  if (!user || user.verify) {
+    throw HttpError(400, "Verification has already been passed")
+  };
+
+  await sendVerificationEmail(user.email, user.verificationToken)
+
+} 
 
 export default {
-  checkUserExistence, registerUser, loginUser, getUserByIdService, updateSubscription, updateAvatarService
+  checkUserExistence,
+  registerUser,
+  loginUser,
+  getUserByIdService,
+  updateSubscription,
+  updateAvatarService,
+  verifyEmail,
+  reVerification
 }
