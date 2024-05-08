@@ -42,6 +42,39 @@ export const login = async (req, res, next) => {
   }
 };
 
+export const forgotPasswordUser = async (req, res, next) => {
+  try {
+    const user = await usersServices.getUserByEmailService(req.body.email);
+
+    if (!user) return res.status(200).json({ msg: "Password reset instructions sent by email" });
+
+    if (!user.verify) {
+      return res.status(403).json({ message: "User is not verified" });
+    }
+
+    const opt = user.createPasswordResetToken();
+
+    console.log(opt);
+
+    await user.save();
+
+    res.status(200).json({ msg: "'Password reset instructions sent by email'" })
+    
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    await usersServices.resetPasswordService(req.params.otp, req.body.password);
+
+    res.sendStatus(200);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export const logout = async (req, res, next) => {
   try {
     req.user.token = null;

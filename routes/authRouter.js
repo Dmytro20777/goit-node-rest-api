@@ -1,17 +1,19 @@
 import { Router } from "express";
 import { protect } from "../middlewares/authMiddlewares.js";
 import {
+  forgotPasswordUser,
   getCurrent,
   login,
   logout,
   register,
   resendVerificationEmail,
+  resetPassword,
   updateAvatarController,
   updateUserSubscription,
   verifyToken,
 } from "../controllers/authController.js";
 import validateBody from "../helpers/validateBody.js";
-import { loginUserSchema, registerUserSchema } from "../schemas/userSchema.js";
+import { loginUserSchema, newPassword, registerUserSchema, verification } from "../schemas/userSchema.js";
 import { uploadAvatar } from "../middlewares/userMiddlewares.js";
 
 const router = Router();
@@ -21,6 +23,12 @@ router.post('/register', validateBody(registerUserSchema), register);
 
 //  checkLoginData, login
 router.post('/login', validateBody(loginUserSchema), login);
+
+// Password restoring
+router.post('/forgot-password', validateBody(verification), forgotPasswordUser);
+
+// Update user password
+router.post("/restore-password/:otp", validateBody(newPassword), resetPassword); 
 
 // Loguot request
 router.post('/logout', protect, logout)

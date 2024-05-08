@@ -1,5 +1,6 @@
 import Jimp from "jimp";
 import path from "path";
+import crypto from "crypto";
 import { v4 } from "uuid";
 
 import HttpError from "../helpers/HttpError.js";
@@ -54,8 +55,14 @@ const loginUser = async ({ email, password }) => {
 async function getUserByIdService(id) {
   const userId = await User.findById(id);
 
-  return userId
+  return userId;
 };
+
+async function getUserByEmailService(email) {
+  const getEmail = await User.findOne({ email });
+
+  return getEmail;
+}
 
 const updateSubscription = async (userId, subscription) => {
 
@@ -112,7 +119,24 @@ const reVerification = async (emailOfUser) => {
 
   await sendVerificationEmail(user.email, user.verificationToken)
 
-} 
+};
+
+const resetPasswordService = async (opt, newPassword) => {
+  const otpHash = crypto.createHash('sha256').update(opt).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: otpHash,
+    passwordResetTokenExp: { $gt: Date.now() },
+  });
+
+  if (!user) throw HttpError(400, "Token is invalid");
+
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetTokenExp = undefined;
+
+  await user.save() 
+}
 
 export default {
   checkUserExistence,
@@ -122,5 +146,7 @@ export default {
   updateSubscription,
   updateAvatarService,
   verifyEmail,
-  reVerification
+  reVerification,
+  getUserByEmailService,
+  resetPasswordService
 }

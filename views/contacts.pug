@@ -1,0 +1,15 @@
+extends layouts/base
+
+block content
+  h1 Contacts list 
+  .todos
+    each allContact in allContacts
+      .todo
+        .owner
+          figure.owner__pic
+            img(src= allContact.avatarURL)
+          p.owner__name= allContact.name
+        .todo__content
+          h3.h3= allContact.email
+          p.description= allContact.favorite
+          p.duedate= allContact.updatedAt

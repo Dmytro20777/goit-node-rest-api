@@ -6,6 +6,7 @@ import dotenv from "dotenv"
 import contactsRouter from "./routes/contactsRouter.js";
 import connectDB from "./server.js";
 import { router as usersRouter } from "./routes/authRouter.js";
+import { router as viewRouter } from "./routes/viewRouter.js";
 
 dotenv.config();
 
@@ -20,6 +21,11 @@ app.use(express.json());
 app.use("/api/contacts", contactsRouter);
 app.use("/users", usersRouter);
 app.use(express.static("public"));
+app.use("/", viewRouter);
+
+// setup PUG template engine
+app.set("view engine", "pug");
+app.set("views", "views")
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
